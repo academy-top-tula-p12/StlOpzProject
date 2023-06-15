@@ -13,6 +13,12 @@ class MathExpression
 	string expressionOpz;
 	map<string, double> variables;
 
+	const string bracketsOpen{ "([{" };
+	const string bracketsClose{ ")]}" };
+
+	const string operatorsAdditive{ "+-" };
+	const string operatorsMultiplex{ "*/" };
+
 public:
 	MathExpression() : expression{ "" } {}
 	MathExpression(string expression)

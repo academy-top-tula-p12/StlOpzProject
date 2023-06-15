@@ -3,10 +3,13 @@
 
 int main()
 {
-    MathExpression expr("");
-    cout << expr.CheckBrackets();
+    MathExpression expr("10 * (20 + 30)"); // 10#20#30#+*
+    //cout << expr.CheckBrackets();
 
-    expr["a"] = 10;
-    expr["b"] = 5.4;
-    expr["a"] = 20;
+    expr.OpzCreate();
+    cout << expr.ExpressionOpz();
+
+    /*expr["a"] = 10;
+    expr["b"] = .4;
+    expr["a"] = 20;*/
 }
