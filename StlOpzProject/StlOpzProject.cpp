@@ -1,6 +1,8 @@
 ﻿#include <iostream>
+#include "MathExpression.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    MathExpression expr("");
+    cout << expr.CheckBrackets();
 }
