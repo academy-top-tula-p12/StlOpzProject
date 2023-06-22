@@ -4,6 +4,7 @@
 #include <map>
 #include <stack>
 #include <algorithm>
+#include <exception>
 
 using namespace std;
 
@@ -12,6 +13,13 @@ class MathExpression
 	string expression;
 	string expressionOpz;
 	map<string, double> variables;
+	map<char, string> functions
+	{
+		{ 's', "sin" },
+		{ 'c', "cos" },
+		{ 't', "tg" },
+		{ 'a', "ctg" },
+	};
 
 	const string bracketsOpen{ "([{" };
 	const string bracketsClose{ ")]}" };

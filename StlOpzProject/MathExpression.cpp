@@ -65,6 +65,14 @@ void MathExpression::OpzCreate()
 {
     stack<char> operatorsStack;
 
+    string fkeys{ "" };
+    string fvals{ "" };
+    for (auto f : this->functions)
+    {
+        fkeys.push_back(f.first);
+        fvals += f.second;
+    }
+
     for (int position{}; position < expression.length(); position++)
     {
         char symbol = expression[position];
@@ -99,6 +107,7 @@ void MathExpression::OpzCreate()
             }
             number.push_back('#');
             expressionOpz.append(number);
+            position--;
             continue;
         }
 
@@ -114,8 +123,17 @@ void MathExpression::OpzCreate()
                 symbol = expression[++position];
             }
 
-            double value = variables[name];
-            expressionOpz.append(to_string(value) + "#");
+            // name is functions name
+            if (fvals.find(name) != string::npos)
+            {
+                operatorsStack.push(name[0]);
+            }
+            else
+            {
+                double value = variables[name];
+                expressionOpz.append(to_string(value) + "#");
+            }
+            position--;
             continue;
         }
 
@@ -143,7 +161,8 @@ void MathExpression::OpzCreate()
         if (operatorsMultiplex.find(symbol) != string::npos)
         {
             while (!operatorsStack.empty() &&
-                operatorsMultiplex.find(operatorsStack.top()) != string::npos)
+                (operatorsMultiplex.find(operatorsStack.top()) != string::npos ||
+                fkeys.find(operatorsStack.top()) != string::npos))
             {
                 expressionOpz.push_back(operatorsStack.top());
                 operatorsStack.pop();
@@ -155,8 +174,11 @@ void MathExpression::OpzCreate()
         if (operatorsAdditive.find(symbol) != string::npos)
         {
             while (!operatorsStack.empty() &&
-                bracketsOpen.find(operatorsStack.top()) != string::npos)
+                (operatorsMultiplex.find(operatorsStack.top()) != string::npos ||
+                operatorsAdditive.find(operatorsStack.top()) != string::npos ||
+                fkeys.find(operatorsStack.top()) != string::npos))
             {
+                
                 expressionOpz.push_back(operatorsStack.top());
                 operatorsStack.pop();
             }
@@ -166,7 +188,98 @@ void MathExpression::OpzCreate()
 
     while (!operatorsStack.empty())
     {
-        expressionOpz.push_back(operatorsStack.top());
+        if (bracketsOpen.find(operatorsStack.top()) == string::npos)
+            expressionOpz.push_back(operatorsStack.top());
         operatorsStack.pop();
     }
+}
+
+double MathExpression::OpzCalculate()
+{
+    stack<double> operandsStack;
+
+    string fkeys{ "" };
+    for (auto f : this->functions)
+        fkeys.push_back(f.first);
+
+    
+    int position{};
+    while (position < expressionOpz.length())
+    {
+        char symbol = expressionOpz[position];
+
+        if (isdigit(symbol) || symbol == '.')
+        {
+            string operand = "";
+
+            while (symbol != '#')
+            {
+                operand.push_back(symbol);
+                symbol = expressionOpz[++position];
+            }
+            operandsStack.push(stof(operand));
+            position++;
+            continue;
+        }
+
+        if ((operatorsMultiplex.find(symbol) != string::npos) ||
+            operatorsAdditive.find(symbol) != string::npos)
+        {
+            double operand2 = operandsStack.top();
+            operandsStack.pop();
+            double operand1 = operandsStack.top();
+            operandsStack.pop();
+            
+            double result;
+            switch (symbol)
+            {
+            case '*': result = operand1 * operand2; break;
+            case '/': result = operand1 / operand2; break;
+            case '+': result = operand1 + operand2; break;
+            case '-': result = operand1 - operand2; break;
+            default:
+                break;
+            }
+            operandsStack.push(result);
+            position++;
+            continue;
+        }
+
+        if (fkeys.find(symbol) != string::npos)
+        {
+            double operand = operandsStack.top();
+            operandsStack.pop();
+
+            switch (symbol)
+            {
+            case 'c': operandsStack.push(cos(operand)); break;
+            case 's': operandsStack.push(sin(operand)); break;
+            case 't': operandsStack.push(tan(operand)); break;
+            case 'a': operandsStack.push(1/tan(operand)); break;
+            default:
+                break;
+            }
+            position++;
+            continue;
+        }
+    }
+    return operandsStack.top();
+}
+
+double MathExpression::Calculate()
+{
+    if (this->CheckBrackets() == -1)
+    {
+        try 
+        {
+            return this->OpzCalculate();
+        }
+        catch (...)
+        {
+            throw exception("error at calculate");
+        }
+        
+    }
+    else
+        throw exception("error at brackets...");
 }
